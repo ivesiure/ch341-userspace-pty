@@ -138,7 +138,7 @@ def usb_to_pty():
             if e.errno not in (110, 62):      # ETIMEDOUT / ETIME are normal
                 stats["errors"] += 1; time.sleep(0.01)
                 if e.errno in (19, 108):      # ENODEV / ESHUTDOWN
-                    print("device went away:", e); stop.set()
+                    print("device went away:", e); sys.stdout.flush(); stop.set()
 
 def pty_to_usb():
     while not stop.is_set():
@@ -174,6 +174,10 @@ def cleanup(*_):
 signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
-while not stop.is_set():
-    time.sleep(STATS_SECS)
+# stop.wait() rather than time.sleep(): wait() returns the moment the event is
+# set, sleep() does not. With sleep, the process only noticed the device was gone
+# when it woke up -- up to STATS_SECS later. That is harmless at the 5 s default
+# and a full minute of delay if you raise it, which is exactly the case where a
+# supervisor is waiting to restart you.
+while not stop.wait(STATS_SECS):
     print("  tx=%d rx=%d errors=%d" % (stats["tx"], stats["rx"], stats["errors"])); sys.stdout.flush()
