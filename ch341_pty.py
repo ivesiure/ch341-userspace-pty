@@ -11,6 +11,7 @@ Pure Python, standard library only.
 Environment:
     BAUD    line rate to program into the chip   (default 250000)
     LINK    stable symlink to create for the pty (default ~/printer)
+    STATS_SECS  seconds between throughput lines      (default 5)
 
 Copyright (C) 2026 Ives Iure Magalhaes Ancelmo
 SPDX-License-Identifier: GPL-2.0-only
@@ -28,6 +29,9 @@ import os, sys, fcntl, ctypes, struct, glob, select, threading, signal, time, te
 BAUD     = int(os.environ.get("BAUD", "250000"))
 VID, PID = "1a86", "7523"
 LINK     = os.environ.get("LINK", os.path.expanduser("~/printer"))
+# Seconds between throughput lines. Under a supervisor these are log volume:
+# at the 5 s default a day of uptime is ~17k lines. Raise it for appliances.
+STATS_SECS = int(os.environ.get("STATS_SECS", "5"))
 
 def _ioc(d,t,nr,sz): return (d<<30)|(sz<<16)|(ord(t)<<8)|nr
 CTRL,BULK,CLAIM = _ioc(3,'U',0,24), _ioc(3,'U',2,24), _ioc(2,'U',15,4)
@@ -171,5 +175,5 @@ signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
 while not stop.is_set():
-    time.sleep(5)
+    time.sleep(STATS_SECS)
     print("  tx=%d rx=%d errors=%d" % (stats["tx"], stats["rx"], stats["errors"])); sys.stdout.flush()
