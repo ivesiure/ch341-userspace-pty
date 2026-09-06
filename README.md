@@ -65,6 +65,12 @@ here**.
 - [ ] Pass through what serial semantics can be passed: at least `TIOCMBIS`/`TIOCMBIC` for
       DTR/RTS
 
+## Contributing
+
+Reports from other chips are the single most useful thing you can send — this has been tested
+against one. See `CONTRIBUTING.md`, which opens with the licence constraint you cannot guess:
+**do not contribute code derived from a GPL-3.0 project**, Klipper included.
+
 ## Licence
 
 **GPL-2.0-only**, because the chip initialisation is translated from
